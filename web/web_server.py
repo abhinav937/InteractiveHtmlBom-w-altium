@@ -15,8 +15,8 @@ os.environ['INTERACTIVE_HTML_BOM_CLI_MODE'] = '1'
 os.environ['DISPLAY'] = ''  # Prevent X11/WX GUI initialization on Unix-like systems
 os.environ['KICAD_RUN_FROM_BUILD_DIR'] = '1'  # Some KiCad versions use this
 
-# Suppress cgi deprecation warnings
-warnings.filterwarnings('ignore', category=DeprecationWarning, module='cgi')
+# Suppress cgi deprecation warnings - must be set before importing cgi
+warnings.filterwarnings('ignore', category=DeprecationWarning, message='.*cgi.*')
 
 import tempfile
 import shutil
@@ -30,11 +30,14 @@ import io
 import re
 
 # Try to import cgi, fall back to manual parsing for Python 3.13+
-try:
-    import cgi
-    HAS_CGI = True
-except ImportError:
-    HAS_CGI = False
+# Suppress deprecation warning during import
+with warnings.catch_warnings():
+    warnings.filterwarnings('ignore', category=DeprecationWarning)
+    try:
+        import cgi
+        HAS_CGI = True
+    except ImportError:
+        HAS_CGI = False
 
 # Add the project directory to path
 script_dir = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
@@ -584,7 +587,8 @@ def main():
     print(f"Starting Interactive HTML BOM server...")
     print(f"Server running at {url}")
     if has_pcbnew:
-        print("Note: wxWidgets assertion warnings (if any) are harmless when running headless.")
+        print("Note: Any wxWidgets assertion errors below are harmless when running headless.")
+        print("      The server will function normally despite these warnings.")
     print(f"Opening browser...")
     print(f"Press Ctrl+C to stop the server")
     

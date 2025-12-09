@@ -1,9 +1,7 @@
 import os
-
+import platform
 import subprocess
-
 import tempfile
-
 import shutil
 
 from .common import EcadParser
@@ -37,25 +35,26 @@ class AltiumParser(EcadParser):
 
         """Check if Perl is available."""
 
-        try:
+        # Try different Perl command names based on platform
+        perl_commands = ['perl']
+        if platform.system() == 'Windows':
+            perl_commands = ['perl.exe', 'perl', 'C:\\Strawberry\\perl\\bin\\perl.exe',
+                           'C:\\Perl64\\bin\\perl.exe', 'C:\\Perl\\bin\\perl.exe']
 
-            result = subprocess.run(
-
-                ['perl', '--version'],
-
-                capture_output=True,
-
-                text=True,
-
-                timeout=5
-
-            )
-
-            return result.returncode == 0
-
-        except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
-
-            return False
+        for perl_cmd in perl_commands:
+            try:
+                result = subprocess.run(
+                    [perl_cmd, '--version'],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                if result.returncode == 0:
+                    return True
+            except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
+                continue
+        
+        return False
 
 
 
@@ -70,17 +69,25 @@ class AltiumParser(EcadParser):
         """
 
         # Check if Perl is available
-
         if not self._check_perl():
-
-            self.logger.error(
-
-                "Perl is required for altium2kicad conversion but not found.\n"
-
-                "Please install Perl to use Altium .PcbDoc files."
-
-            )
-
+            system = platform.system()
+            if system == 'Windows':
+                error_msg = (
+                    "Perl is required for altium2kicad conversion but not found.\n\n"
+                    "Please install Perl to use Altium .PcbDoc files:\n"
+                    "  1. Download from https://www.perl.org/get.html\n"
+                    "  2. Or install Strawberry Perl: https://strawberryperl.com/\n"
+                    "  3. Make sure Perl is added to your PATH environment variable\n"
+                    "  4. Restart the server after installation"
+                )
+            else:
+                error_msg = (
+                    "Perl is required for altium2kicad conversion but not found.\n\n"
+                    "Please install Perl to use Altium .PcbDoc files:\n"
+                    "  macOS: brew install perl\n"
+                    "  Linux: sudo apt-get install perl (or use your package manager)"
+                )
+            self.logger.error(error_msg)
             return None
 
 
@@ -104,50 +111,51 @@ class AltiumParser(EcadParser):
 
 
         # Check if altium2kicad is in PATH
-
+        # Use 'where' on Windows, 'which' on Unix-like systems
+        if platform.system() == 'Windows':
+            find_cmd = ['where', 'altium2kicad']
+        else:
+            find_cmd = ['which', 'altium2kicad']
+        
         try:
-
             result = subprocess.run(
-
-                ['which', 'altium2kicad'],
-
+                find_cmd,
                 capture_output=True,
-
                 text=True,
-
                 timeout=5
-
             )
-
             if result.returncode == 0:
-
                 # If it's in PATH, find the directory
-
-                converter_path = os.path.dirname(result.stdout.strip())
-
+                converter_path = os.path.dirname(result.stdout.strip().split('\n')[0])
                 if os.path.exists(os.path.join(converter_path, 'convertpcb.pl')):
-
                     return converter_path
-
         except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
-
             pass
 
 
 
         # Check common installation locations
-
-        common_paths = [
-
-            os.path.expanduser('~/altium2kicad'),
-
-            os.path.expanduser('~/github/altium2kicad'),
-
-            '/usr/local/share/altium2kicad',
-
-            '/opt/altium2kicad',
-
-        ]
+        system = platform.system()
+        common_paths = []
+        
+        if system == 'Windows':
+            # Windows common locations
+            common_paths = [
+                os.path.expanduser('~\\altium2kicad'),
+                os.path.expanduser('~\\Documents\\altium2kicad'),
+                os.path.expanduser('~\\github\\altium2kicad'),
+                r'C:\altium2kicad',
+                r'C:\Program Files\altium2kicad',
+                r'C:\Program Files (x86)\altium2kicad',
+            ]
+        else:
+            # Unix-like systems
+            common_paths = [
+                os.path.expanduser('~/altium2kicad'),
+                os.path.expanduser('~/github/altium2kicad'),
+                '/usr/local/share/altium2kicad',
+                '/opt/altium2kicad',
+            ]
 
 
 
@@ -227,29 +235,39 @@ class AltiumParser(EcadParser):
 
         if not converter_dir:
 
-            self.logger.error(
-
-                "altium2kicad converter not found.\n\n"
-
-                "The altium2kicad converter should be included in this repository.\n"
-
-                "If it's missing, please ensure the 'altium2kicad' directory exists\n"
-
-                "in the repository root, or install it manually:\n"
-
-                "  1. Install Perl (if not already installed)\n"
-
-                "  2. Clone the repository:\n"
-
-                "     git clone https://github.com/thesourcerer8/altium2kicad.git\n"
-
-                "  3. Place it in the repository root as 'altium2kicad'\n\n"
-
-                "Alternatively, manually convert your .PcbDoc to .kicad_pcb first,\n"
-
-                "then use the generated .kicad_pcb file directly."
-
-            )
+            system = platform.system()
+            if system == 'Windows':
+                error_msg = (
+                    "altium2kicad converter not found.\n\n"
+                    "The altium2kicad converter should be included in this repository.\n"
+                    "If it's missing, please ensure the 'altium2kicad' directory exists\n"
+                    "in the repository root, or install it manually:\n\n"
+                    "  1. Install Perl (if not already installed):\n"
+                    "     - Download from https://www.perl.org/get.html\n"
+                    "     - Or install Strawberry Perl: https://strawberryperl.com/\n"
+                    "     - Make sure Perl is added to your PATH\n\n"
+                    "  2. Clone the repository:\n"
+                    "     git clone https://github.com/thesourcerer8/altium2kicad.git\n\n"
+                    "  3. Place it in the repository root as 'altium2kicad'\n\n"
+                    "Alternatively, manually convert your .PcbDoc to .kicad_pcb first,\n"
+                    "then use the generated .kicad_pcb file directly."
+                )
+            else:
+                error_msg = (
+                    "altium2kicad converter not found.\n\n"
+                    "The altium2kicad converter should be included in this repository.\n"
+                    "If it's missing, please ensure the 'altium2kicad' directory exists\n"
+                    "in the repository root, or install it manually:\n\n"
+                    "  1. Install Perl (if not already installed)\n"
+                    "     macOS: brew install perl\n"
+                    "     Linux: sudo apt-get install perl\n\n"
+                    "  2. Clone the repository:\n"
+                    "     git clone https://github.com/thesourcerer8/altium2kicad.git\n\n"
+                    "  3. Place it in the repository root as 'altium2kicad'\n\n"
+                    "Alternatively, manually convert your .PcbDoc to .kicad_pcb first,\n"
+                    "then use the generated .kicad_pcb file directly."
+                )
+            self.logger.error(error_msg)
 
             return None
 

@@ -531,10 +531,13 @@ def main():
             print(f"\nAuto-restarting with KiCad Python...")
             print("=" * 60)
             # Restart with KiCad Python
+            # Use subprocess instead of os.execv for better Windows compatibility with paths containing spaces
             import subprocess
             script_path = os.path.join(script_dir, 'web_server.py')
             try:
-                os.execv(kicad_python, [kicad_python, script_path] + sys.argv[1:])
+                # Use subprocess.Popen to start new process and exit current one
+                subprocess.Popen([kicad_python, script_path] + sys.argv[1:])
+                sys.exit(0)
             except Exception as e:
                 print(f"Failed to restart with KiCad Python: {e}")
                 print(f"\nPlease manually run:")

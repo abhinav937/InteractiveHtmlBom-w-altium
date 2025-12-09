@@ -551,7 +551,7 @@ function initDefaults() {
 
   settings.markWhenChecked = readStorage("markWhenChecked");
   if (settings.markWhenChecked == null) {
-    settings.markWhenChecked = config.mark_when_checked;
+    settings.markWhenChecked = config.mark_when_checked || "Placed";
   }
   populateMarkWhenCheckedOptions();
 

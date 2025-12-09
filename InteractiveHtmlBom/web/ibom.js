@@ -1145,11 +1145,6 @@ function prepCheckboxes() {
 function populateMarkWhenCheckedOptions() {
   var container = document.getElementById("markWhenCheckedContainer");
 
-  if (settings.checkboxes.length == 0) {
-    container.parentElement.style.display = "none";
-    return;
-  }
-
   container.innerHTML = '';
   container.parentElement.style.display = "inline-block";
 
@@ -1180,9 +1175,8 @@ function populateMarkWhenCheckedOptions() {
     container.appendChild(div);
   }
   createOption("", "None");
-  for (var checkbox of settings.checkboxes) {
-    createOption(checkbox, checkbox);
-  }
+  createOption("Sourced", "Sourced");
+  createOption("Placed", "Placed");
 }
 
 function updateCheckboxStats(checkbox) {

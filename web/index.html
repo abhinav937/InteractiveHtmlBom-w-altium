@@ -11,245 +11,367 @@
             box-sizing: border-box;
         }
         
+        html, body {
+            min-height: 100%;
+        }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            background-attachment: fixed;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, sans-serif;
+            background: #ffffff;
+            color: #0a0a0a;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
         .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 600px;
+            max-width: min(1200px, 95vw);
             width: 100%;
-            animation: slideUp 0.5s ease-out;
+            margin: 0 auto;
+            padding: clamp(16px, 3vh, 32px) clamp(20px, 4vw, 48px);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            justify-content: flex-start;
         }
         
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .header-section {
+            flex-shrink: 0;
+            margin-bottom: clamp(16px, 3vh, 32px);
         }
         
         h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2.2em;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: clamp(24px, 4vw, 36px);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: clamp(2px, 0.5vh, 6px);
+            color: #0a0a0a;
+            line-height: 1.2;
         }
         
         .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 0.9em;
+            font-size: clamp(13px, 1.8vw, 16px);
+            color: #6b7280;
+            font-weight: 400;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            gap: clamp(12px, 2vh, 20px);
+        }
+        
+        .server-note {
+            margin-bottom: clamp(12px, 2vh, 20px);
+            padding: clamp(12px, 2vh, 16px) clamp(16px, 2.5vw, 20px);
+            background: #f8fafc;
+            border-radius: 6px;
+            font-size: clamp(13px, 1.6vw, 15px);
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            display: none;
+            flex-shrink: 0;
+            line-height: 1.6;
+        }
+        
+        .server-note strong {
+            color: #0f172a;
+            font-weight: 600;
+        }
+        
+        .server-note code {
+            background: #f1f5f9;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: clamp(12px, 1.4vw, 14px);
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+            color: #0f172a;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .upload-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            gap: clamp(12px, 2vh, 16px);
         }
         
         .upload-area {
-            border: 3px dashed #667eea;
-            border-radius: 15px;
-            padding: 40px;
+            border: 1.5px dashed #d1d5db;
+            border-radius: 6px;
+            padding: clamp(24px, 5vh, 40px) clamp(20px, 4vw, 32px);
             text-align: center;
-            background: #f8f9ff;
-            transition: all 0.3s ease;
+            background: #fafafa;
             cursor: pointer;
-            margin-bottom: 20px;
+            transition: all 0.15s ease;
+            flex-shrink: 0;
         }
         
         .upload-area:hover {
-            border-color: #764ba2;
-            background: #f0f2ff;
+            border-color: #9ca3af;
+            background: #f9fafb;
         }
         
         .upload-area.dragover {
-            border-color: #764ba2;
-            background: #e8ebff;
-            transform: scale(1.02);
+            border-color: #2563eb;
+            background: #eff6ff;
         }
         
         .upload-icon {
-            font-size: 64px;
-            margin-bottom: 15px;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
+            font-size: clamp(28px, 5vw, 40px);
+            margin-bottom: clamp(8px, 1.5vh, 14px);
+            opacity: 0.6;
         }
         
         .upload-text {
-            color: #667eea;
-            font-size: 1.1em;
-            font-weight: 600;
-            margin-bottom: 5px;
+            font-size: clamp(14px, 2vw, 16px);
+            font-weight: 500;
+            color: #111827;
+            margin-bottom: clamp(2px, 0.5vh, 6px);
         }
         
         .upload-hint {
-            color: #999;
-            font-size: 0.9em;
+            font-size: clamp(12px, 1.5vw, 14px);
+            color: #6b7280;
         }
         
         #fileInput {
             display: none;
         }
         
-        
         .button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
             width: 100%;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-top: 10px;
+            padding: clamp(10px, 2vh, 14px) clamp(20px, 4vw, 28px);
+            font-size: clamp(14px, 1.8vw, 16px);
+            font-weight: 500;
+            color: #ffffff;
+            background: #0a0a0a;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            font-family: inherit;
+            flex-shrink: 0;
         }
         
         .button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+            background: #1f1f1f;
         }
         
         .button:disabled {
-            opacity: 0.6;
+            opacity: 0.4;
             cursor: not-allowed;
         }
         
-        .status {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 10px;
-            display: none;
+        .button-secondary {
+            background: transparent;
+            color: #0a0a0a;
+            border: 1px solid #e5e7eb;
         }
         
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .status.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        
-        .status.processing {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
+        .button-secondary:hover:not(:disabled) {
+            background: #fafafa;
+            border-color: #d1d5db;
         }
         
         .file-info {
-            margin-top: 15px;
-            padding: 15px;
-            background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
-            border-radius: 10px;
-            font-size: 0.9em;
-            color: #666;
-            border: 2px solid #e8ebff;
-            animation: fadeIn 0.3s ease-in;
+            padding: clamp(10px, 1.5vh, 14px) clamp(12px, 2vw, 18px);
+            background: #f9fafb;
+            border-radius: 6px;
+            font-size: clamp(12px, 1.5vw, 14px);
+            color: #374151;
+            border: 1px solid #e5e7eb;
+            display: none;
+            flex-shrink: 0;
+            line-height: 1.6;
         }
         
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
+        .file-info strong {
+            color: #111827;
+            font-weight: 500;
         }
         
-        .cleanup-section {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 2px solid #e0e0e0;
+        .status {
+            padding: clamp(12px, 2vh, 16px) clamp(16px, 2.5vw, 20px);
+            border-radius: 6px;
+            font-size: clamp(13px, 1.6vw, 15px);
+            display: none;
+            line-height: 1.6;
+            flex-shrink: 0;
         }
         
-        .cleanup-button {
-            background: #6c757d;
-            font-size: 0.9em;
-            padding: 12px 24px;
+        .status.success {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #86efac;
         }
         
-        .cleanup-button:hover:not(:disabled) {
-            background: #5a6268;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+        .status.error {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+        }
+        
+        .status.info {
+            background: #f0f9ff;
+            color: #0369a1;
+            border: 1px solid #7dd3fc;
+        }
+        
+        .status.processing {
+            background: #fffbeb;
+            color: #d97706;
+            border: 1px solid #fcd34d;
         }
         
         .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
             display: inline-block;
-            margin-right: 10px;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #e5e7eb;
+            border-top-color: #0a0a0a;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
             vertical-align: middle;
         }
         
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .actions-section {
+            flex-shrink: 0;
+            margin-top: clamp(12px, 2vh, 20px);
+        }
+        
+        .divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: clamp(12px, 2vh, 16px) 0;
+        }
+        
+        .footer {
+            flex-shrink: 0;
+            margin-top: clamp(12px, 2vh, 20px);
+            padding-top: clamp(12px, 2vh, 16px);
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: clamp(16px, 3vw, 24px);
+        }
+        
+        .footer-links a {
+            font-size: clamp(12px, 1.5vw, 14px);
+            color: #6b7280;
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+        
+        .footer-links a:hover {
+            color: #111827;
+        }
+        
+        /* Landscape orientation */
+        @media (orientation: landscape) and (max-height: 600px) {
+            .container {
+                padding: clamp(12px, 2vh, 20px) clamp(20px, 4vw, 40px);
+            }
+            
+            .header-section {
+                margin-bottom: clamp(8px, 1.5vh, 16px);
+            }
+            
+            .upload-area {
+                padding: clamp(16px, 3vh, 24px) clamp(20px, 4vw, 28px);
+            }
+        }
+        
+        /* Portrait orientation */
+        @media (orientation: portrait) and (max-width: 768px) {
+            .container {
+                padding: clamp(16px, 3vh, 24px) clamp(16px, 4vw, 24px);
+            }
+        }
+        
+        /* Ultra-wide screens */
+        @media (min-width: 1920px) {
+            .container {
+                max-width: 1400px;
+            }
+        }
+        
+        /* Tall/narrow screens */
+        @media (max-width: 480px) {
+            .upload-area {
+                padding: clamp(20px, 4vh, 28px) clamp(16px, 4vw, 20px);
+            }
+        }
+        
+        /* Very short screens */
+        @media (max-height: 600px) {
+            .main-content {
+                gap: clamp(8px, 1vh, 12px);
+            }
+        }
+        
+        /* Square-ish screens */
+        @media (min-aspect-ratio: 1/1) and (max-aspect-ratio: 16/10) {
+            .container {
+                padding: clamp(20px, 3vh, 28px) clamp(24px, 5vw, 40px);
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Interactive HTML BOM</h1>
-        <p class="subtitle">Upload your PCB file to generate an interactive Bill of Materials</p>
-        
-        <div class="status info" id="serverCheck" style="display: none;">
-            <strong>Note:</strong> This page needs to be served by the web server. 
-            Please run <code>python3 web_server.py</code> or double-click <code>start_bom_server.command</code> (macOS) / <code>start_bom_server.py</code> (Windows).
+        <div class="header-section">
+            <h1>Interactive HTML BOM</h1>
+            <p class="subtitle">Generate interactive Bill of Materials from PCB files</p>
         </div>
         
-        <div class="upload-area" id="uploadArea">
-            <div class="upload-icon">↑</div>
-            <div class="upload-text">Click to upload or drag and drop</div>
-            <div class="upload-hint">Supports .PcbDoc (Altium) and .kicad_pcb files</div>
-            <input type="file" id="fileInput" accept=".PcbDoc,.pcbdoc,.kicad_pcb">
+        <div class="server-note" id="serverCheck">
+            <strong>Server not running</strong><br>
+            Start the web server by running <code>python3 run.py</code> or <code>python3 web/web_server.py</code>.
         </div>
         
-        <button class="button" id="processButton" disabled>Generate BOM</button>
-        
-        <div class="file-info" id="fileInfo" style="display: none;"></div>
-        
-        <div class="status" id="status"></div>
-        
-        <div class="cleanup-section">
-            <button class="button cleanup-button" id="cleanupButton">Clean Up Temporary Files</button>
+        <div class="main-content">
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">Click to upload or drag and drop</div>
+                    <div class="upload-hint">Supports .PcbDoc (Altium) and .kicad_pcb files</div>
+                    <input type="file" id="fileInput" accept=".PcbDoc,.pcbdoc,.kicad_pcb">
+                </div>
+                
+                <button class="button" id="processButton" disabled>Generate BOM</button>
+                
+                <div class="file-info" id="fileInfo"></div>
+                <div class="status" id="status"></div>
+            </div>
         </div>
+        
+        <div class="actions-section">
+            <div class="divider"></div>
+            <button class="button button-secondary" id="cleanupButton">Clean Up Temporary Files</button>
+        </div>
+        
+        <footer class="footer">
+            <div class="footer-links">
+                <a href="https://cabhinav.com" target="_blank" rel="noopener noreferrer">
+                    Website
+                </a>
+                <a href="https://github.com/abhinav937/InteractiveHtmlBom-w-altium" target="_blank" rel="noopener noreferrer">
+                    GitHub
+                </a>
+            </div>
+        </footer>
     </div>
     
     <script>
@@ -262,7 +384,6 @@
         
         let selectedFile = null;
         
-        // Check if server is running
         fetch('/status')
             .then(response => {
                 if (!response.ok) {
@@ -273,19 +394,16 @@
                 document.getElementById('serverCheck').style.display = 'block';
             });
         
-        // Click to upload
         uploadArea.addEventListener('click', () => {
             fileInput.click();
         });
         
-        // File input change
         fileInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
                 handleFileSelect(e.target.files[0]);
             }
         });
         
-        // Drag and drop
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             uploadArea.classList.add('dragover');
@@ -305,14 +423,12 @@
         });
         
         function handleFileSelect(file) {
-            // Check file extension
             const ext = file.name.split('.').pop().toLowerCase();
             if (!['pcbdoc', 'kicad_pcb'].includes(ext)) {
-                showStatus(`Unsupported file type: .${ext}<br>Please select a .PcbDoc (Altium) or .kicad_pcb (KiCad) file`, 'error');
+                showStatus(`Unsupported file type (.${ext}). Please select a .PcbDoc (Altium) or .kicad_pcb (KiCad) file.`, 'error');
                 selectedFile = null;
                 processButton.disabled = true;
                 fileInfo.style.display = 'none';
-                // Clear the file input
                 fileInput.value = '';
                 return;
             }
@@ -320,22 +436,39 @@
             selectedFile = file;
             processButton.disabled = false;
             
+            // Format file size
+            let sizeDisplay;
+            if (file.size < 1024) {
+                sizeDisplay = file.size + ' bytes';
+            } else if (file.size < 1024 * 1024) {
+                sizeDisplay = (file.size / 1024).toFixed(2) + ' KB';
+            } else {
+                sizeDisplay = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+            }
+            
+            // Format last modified date
+            let lastModified = 'Unknown';
+            if (file.lastModified) {
+                const date = new Date(file.lastModified);
+                lastModified = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+            }
+            
             fileInfo.style.display = 'block';
             fileInfo.innerHTML = `
-                <strong>Selected file:</strong> ${file.name}<br>
-                <strong>Size:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB<br>
-                <strong>Type:</strong> ${ext === 'pcbdoc' ? 'Altium Designer' : 'KiCad'} PCB
+                <strong>File:</strong> ${file.name}<br>
+                <strong>Size:</strong> ${sizeDisplay}<br>
+                <strong>Type:</strong> ${ext === 'pcbdoc' ? 'Altium Designer' : 'KiCad'} PCB<br>
+                <strong>Modified:</strong> ${lastModified}
             `;
             
-            showStatus('File selected. Click "Generate BOM" to process.', 'info');
+            showStatus('File ready. Click "Generate BOM" to continue.', 'info');
         }
         
-        // Process button
         processButton.addEventListener('click', async () => {
             if (!selectedFile) return;
             
             processButton.disabled = true;
-            showStatus('<div class="spinner"></div>Processing file... This may take a minute.', 'processing');
+            showStatus('<div class="spinner"></div>Processing file... This may take a moment.', 'processing');
             
             const formData = new FormData();
             formData.append('file', selectedFile);
@@ -350,39 +483,32 @@
                 
                 if (result.success) {
                     showStatus(result.message + ' Opening in new tab...', 'success');
-                    // Open generated HTML in new tab using server URL
-                    // (file:// URLs are blocked by browsers for security)
                     if (result.url) {
-                        // Use setTimeout to ensure the status message is shown first
                         setTimeout(() => {
                             try {
                                 const newWindow = window.open(result.url, '_blank');
                                 if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-                                    // Popup was blocked, show URL as clickable link
-                                    showStatus(result.message + ' <a href="' + result.url + '" target="_blank" style="color: #155724; text-decoration: underline; font-weight: bold;">Click here to open the BOM</a>', 'success');
+                                    showStatus(result.message + ' <a href="' + result.url + '" target="_blank" style="color: #166534; text-decoration: underline; font-weight: 500;">Click here to open the BOM</a>', 'success');
                                 } else {
-                                    // Successfully opened
                                     showStatus(result.message, 'success');
                                 }
                             } catch (e) {
-                                // Fallback: show clickable link
-                                showStatus(result.message + ' <a href="' + result.url + '" target="_blank" style="color: #155724; text-decoration: underline; font-weight: bold;">Click here to open the BOM</a>', 'success');
+                                showStatus(result.message + ' <a href="' + result.url + '" target="_blank" style="color: #166534; text-decoration: underline; font-weight: 500;">Click here to open the BOM</a>', 'success');
                             }
                         }, 100);
                     } else {
-                        showStatus('Generated file but URL not available', 'error');
+                        showStatus('BOM generated, but URL is unavailable.', 'error');
                     }
                 } else {
-                    showStatus(result.error || 'Failed to generate BOM', 'error');
+                    showStatus(result.error || 'Unable to generate BOM. Please try again.', 'error');
                 }
             } catch (error) {
-                showStatus('Error: ' + error.message, 'error');
+                showStatus('Connection error. Please check your server connection.', 'error');
             } finally {
                 processButton.disabled = false;
             }
         });
         
-        // Cleanup button
         cleanupButton.addEventListener('click', async () => {
             cleanupButton.disabled = true;
             showStatus('Cleaning up temporary files...', 'info');
@@ -395,12 +521,12 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    showStatus('Temporary files cleaned up successfully', 'success');
+                    showStatus('Temporary files removed successfully.', 'success');
                 } else {
-                    showStatus('Failed to clean up files', 'error');
+                    showStatus('Unable to clean up files. Please try again.', 'error');
                 }
             } catch (error) {
-                showStatus('Error: ' + error.message, 'error');
+                showStatus('Connection error. Please check your server connection.', 'error');
             } finally {
                 cleanupButton.disabled = false;
             }
@@ -410,11 +536,8 @@
             statusDiv.textContent = '';
             statusDiv.className = 'status ' + type;
             statusDiv.style.display = 'block';
-            
-            // Always use innerHTML to support links and HTML content
             statusDiv.innerHTML = message;
         }
     </script>
 </body>
 </html>
-

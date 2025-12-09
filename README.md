@@ -3,6 +3,38 @@
 
 ![icon](https://i.imgur.com/js4kDOn.png)
 
+## About This Project
+
+This project combines two excellent open-source tools to provide a unified solution for generating interactive HTML BOMs from both KiCad and Altium Designer PCB files:
+
+- **[InteractiveHtmlBom](https://github.com/openscopeproject/InteractiveHtmlBom)** - The core BOM generation engine that creates beautiful, interactive HTML Bill of Materials from KiCad PCB files
+- **[altium2kicad](https://github.com/thesourcerer8/altium2kicad)** - A Perl-based converter that transforms Altium Designer `.PcbDoc` files into KiCad `.kicad_pcb` format
+
+This integration adds:
+- **Web-based interface** for easy file upload and BOM generation
+- **Automatic Altium support** by converting `.PcbDoc` files to KiCad format before processing
+- **Unified workflow** - one tool for both KiCad and Altium Designer files
+
+## Credits
+
+This project is built upon and extends the following open-source projects:
+
+### InteractiveHtmlBom
+- **Repository:** https://github.com/openscopeproject/InteractiveHtmlBom
+- **License:** MIT
+- **Original Work:** OpenScope Project
+- Provides the core BOM generation functionality, HTML rendering, and interactive features
+
+### altium2kicad
+- **Repository:** https://github.com/thesourcerer8/altium2kicad
+- **License:** See `altium2kicad/LICENSE` file
+- **Original Work:** thesourcerer8
+- Provides Altium Designer to KiCad PCB conversion functionality
+
+Both projects are included in this repository (with proper attribution) to provide a complete, ready-to-use solution.
+
+---
+
 This plugin generates a convenient Bill of Materials (BOM) listing with the
 ability to visually correlate and easily search for components and their placements
 on the PCB. It is particularly useful when hand-soldering a prototype, as it allows
@@ -159,17 +191,21 @@ kicad-python3 InteractiveHtmlBom/generate_interactive_bom.py board.PcbDoc
 - If the converted file exists and is newer than the original, it will be reused
 - Temporary files are automatically cleaned up after conversion
 
-## License and credits
+## License and Credits
 
-Plugin code is licensed under MIT license, see `LICENSE` for more info.
+### This Project
+The web interface and integration code in this repository is licensed under MIT license, see `LICENSE` for more info.
 
-Html page uses [Split.js](https://github.com/nathancahill/Split.js),
-[PEP.js](https://github.com/jquery/PEP) and (stripped down)
-[lz-string.js](https://github.com/pieroxy/lz-string) libraries that get embedded into
-generated bom page.
+### Original Projects
+- **InteractiveHtmlBom** - MIT License (see original project)
+- **altium2kicad** - See `altium2kicad/LICENSE` file for license details
 
-`units.py` is borrowed from [KiBom](https://github.com/SchrodingersGat/KiBoM)
-plugin (MIT license).
+### Additional Libraries
+The generated HTML page uses:
+- [Split.js](https://github.com/nathancahill/Split.js) - MIT License
+- [PEP.js](https://github.com/jquery/PEP) - MIT License  
+- [lz-string.js](https://github.com/pieroxy/lz-string) - WTFPL License (stripped down version embedded)
 
-`svgpath.py` is heavily based on
-[svgpathtools](https://github.com/mathandy/svgpathtools) module (MIT license).
+### Other Components
+- `units.py` is borrowed from [KiBom](https://github.com/SchrodingersGat/KiBoM) plugin (MIT license)
+- `svgpath.py` is heavily based on [svgpathtools](https://github.com/mathandy/svgpathtools) module (MIT license)

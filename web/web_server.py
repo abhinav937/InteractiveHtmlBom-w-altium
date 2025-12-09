@@ -12,8 +12,83 @@ import warnings
 # Set environment variables BEFORE importing anything that might import pcbnew/wxWidgets
 # This prevents GUI initialization when running as a web server
 os.environ['INTERACTIVE_HTML_BOM_CLI_MODE'] = '1'
+os.environ['INTERACTIVE_HTML_BOM_NO_DISPLAY'] = '1'  # Prevent wxWidgets GUI
 os.environ['DISPLAY'] = ''  # Prevent X11/WX GUI initialization on Unix-like systems
 os.environ['KICAD_RUN_FROM_BUILD_DIR'] = '1'  # Some KiCad versions use this
+
+# Windows-specific: Suppress wxWidgets assertion dialogs
+if sys.platform == 'win32':
+    # Set environment variables that wxWidgets respects
+    os.environ['WXSUPPRESS_SIZER_FLAGS_ON'] = '1'
+    
+    # Use Windows API to suppress assertion dialogs (message boxes)
+    try:
+        import ctypes
+        from ctypes import wintypes
+        
+        # Set Windows error mode to suppress assertion dialogs
+        # SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX
+        SEM_FAILCRITICALERRORS = 0x0001
+        SEM_NOGPFAULTERRORBOX = 0x0002
+        SEM_NOOPENFILEERRORBOX = 0x8000
+        
+        # Set error mode to suppress dialogs
+        kernel32 = ctypes.windll.kernel32
+        old_mode = kernel32.SetErrorMode(0)  # Get current mode
+        new_mode = old_mode | SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX
+        kernel32.SetErrorMode(new_mode)
+    except Exception:
+        # If Windows API calls fail, continue anyway
+        pass
+    
+    # Create a custom stderr filter to suppress wxWidgets assertion dialogs
+    # but allow other errors through
+    import io
+    original_stderr = sys.stderr
+    
+    class FilteredStderr:
+        """Filter stderr to suppress wxWidgets assertion messages."""
+        def __init__(self, original):
+            self.original = original
+            self.devnull = open(os.devnull, 'w')
+        
+        def write(self, text):
+            # Filter out wxWidgets assertion messages
+            if any(keyword in text for keyword in [
+                'wxPlatformInfo',
+                'wxGetIndexFromEnumValue',
+                'GetPortIdName',
+                'Assert failure',
+                'assert ""',
+                'platinfo.cpp',
+                'failed in wx',
+                'vcpkg\\buildtrees\\wxwidgets',
+                'buildtrees/wxwidgets',
+                'wxWidgets',
+                'wxPlatformInfo::InitForCurrentPlatform',
+                'wxPlatformInfo::GetPortIdName'
+            ]):
+                # Suppress wxWidgets assertion errors
+                self.devnull.write(text)
+            else:
+                # Allow other errors through
+                self.original.write(text)
+        
+        def flush(self):
+            self.original.flush()
+            self.devnull.flush()
+        
+        def close(self):
+            self.devnull.close()
+    
+    # Replace stderr with filtered version
+    filtered_stderr = FilteredStderr(original_stderr)
+    sys.stderr = filtered_stderr
+    
+    # Store reference for cleanup if needed
+    _wx_error_suppressor = filtered_stderr
+else:
+    _wx_error_suppressor = None
 
 # Suppress cgi deprecation warnings - must be set before importing cgi
 warnings.filterwarnings('ignore', category=DeprecationWarning, message='.*cgi.*')
@@ -326,6 +401,7 @@ class BOMHandler(BaseHTTPRequestHandler):
         """Process the uploaded file and generate BOM."""
         try:
             # Lazy import to avoid requiring pcbnew at startup
+            # wxWidgets errors are suppressed via stderr filtering on Windows
             from InteractiveHtmlBom.core import ibom
             from InteractiveHtmlBom.core.config import Config
             from InteractiveHtmlBom.ecad import get_parser_by_extension
@@ -492,8 +568,7 @@ def find_free_port():
 def check_kicad_python():
     """Check if pcbnew module is available."""
     try:
-        # Import pcbnew - wxWidgets assertion errors may appear but are harmless
-        # when running headless (they're just warnings about GUI initialization)
+        # Import pcbnew - wxWidgets errors are suppressed via stderr filtering on Windows
         import pcbnew
         return True, None
     except ImportError:

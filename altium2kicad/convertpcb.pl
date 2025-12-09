@@ -1756,6 +1756,7 @@ foreach my $filename(@files)
   
   our %nameon=();
   our %commenton=();
+  our %componentcomment=();  # Store component COMMENT text (actual value like "22n", "120R")
   
   # We extract the filenames and rotation information for the 3D models:
   HandleBinFile("$short/Root Entry/Models/Data.dat","",0,0,sub 
@@ -2542,6 +2543,40 @@ EOF
 	#print "\n";
   });
 
+  # First pass through Texts6 to collect component COMMENT values (actual component values)
+  # This must happen before we output Components6 modules so we can add values to footprints
+  if(-f "$short/Root Entry/Texts6/Data.dat")
+  {
+    my $content=getCRLF(readfile("$short/Root Entry/Texts6/Data.dat"));
+	my $pos=0;
+	while($pos<length($content) && $pos>=0)
+	{
+	  my $opos=$pos;
+	  last if(substr($content,$pos,1) ne "\x05");
+	  $pos++;
+      my $fontlen=unpack("l",substr($content,$pos,4));
+	  $pos+=4;
+	  
+	  # Read component and comment flag from the fixed position in the record
+	  my $component=unpack("s",substr($content,$pos+7,2));
+	  my $comment=unpack("C",substr($content,$pos+40,1));
+	  
+	  # Skip to text
+	  my $font=substr($content,$pos,$fontlen);
+	  $pos+=$fontlen;
+      my $textlen=unpack("l",substr($content,$pos,4));
+	  $pos+=4;
+	  my $text=substr($content,$pos+1,$textlen-1);
+	  $pos+=$textlen;
+	  
+	  # Store COMMENT text (component value) for this component
+	  if($component>=0 && $comment && $text && $text !~ /^\s*$/)
+	  {
+		$componentcomment{$component} = $text;
+	  }
+	}
+  }
+
   $componentid=0;
   HandleBinFile("$short/Root Entry/Components6/Data.dat","",0,0, sub 
   { 
@@ -2626,6 +2661,13 @@ EOF
 	my $SOURCEDESCRIPTION=$d{'SOURCEDESCRIPTION'}||""; $SOURCEDESCRIPTION=~s/"/\\"/g;
 	my $FOOTPRINTDESCRIPTION=$d{'FOOTPRINTDESCRIPTION'}||""; $FOOTPRINTDESCRIPTION=~s/"/\\"/g;
 	my $SOURCEDESIGNATOR=$d{'SOURCEDESIGNATOR'}||""; $SOURCEDESIGNATOR=~s/"/\\"/g;
+	# Get the actual component value from COMMENT text (stored during Texts6 processing)
+	my $COMPONENTVALUE=$componentcomment{$componentid}||"";
+	$COMPONENTVALUE=~s/"/\\"/g;
+	my $COMPONENTVALUEFIELD="";
+	if($COMPONENTVALUE) {
+		$COMPONENTVALUEFIELD="	(fp_text value \"$COMPONENTVALUE\" (at 0 0) (layer F.SilkS) hide\n      (effects (font (thickness 0.05)))\n    )\n";
+	}
     print OUT <<EOF
  (module "$PATTERN" (layer $layer) (tedit 4289BEAB) (tstamp 539EEDBF)
     (at $atx $aty)
@@ -2640,7 +2682,7 @@ EOF
 	(fp_text value "$SOURCEDESCRIPTION" (at 0 0) (layer F.SilkS) hide
       (effects (font (thickness 0.05)))
     )
-
+$COMPONENTVALUEFIELD
 	$pad
   )
 EOF
@@ -3214,12 +3256,14 @@ EOF
 	  assertdata("Text",$counter,"DESIGNATOR",$alttruth{$designator}) if($designator);
 
 	  my $hide=0;
+	  my $is_comment_text=0;
 	  if($component>=0)
 	  {
 	    if($comment) #$texttype == 0xc0)
 		{
 		  #assertdata("Text",$counter,"COMMENT","TRUE");
 		  $hide=1 if($commenton{$component} eq "FALSE");
+		  $is_comment_text=1;  # Mark this as a comment text
 		}
 		elsif($designator) # $texttype == 0xf2)
 		{
@@ -3266,6 +3310,12 @@ EOF
 	  my $text=substr($content,$pos+1,$textlen-1); 
   	  assertdata("Text",$counter,"TEXT",$text);
 	  $pos+=$textlen;
+	  
+	  # Store the COMMENT text (component value) for this component AFTER text is read
+	  if($component>=0 && $is_comment_text && $text && $text !~ /^\s*$/)
+	  {
+		$componentcomment{$component} = $text;
+	  }
 	  print OUT "#Texts#".$opos.": ".bin2hexLF(substr($content,$opos,$pos-$opos))."\n" if($annotate);
 	  print OUT "#Layer: $olayer Component:$component COMMENT=$comment DESIGNATOR=$designator\n" if($annotate);
 	  print OUT "#Commenton: ".($commenton{$component}||"")." nameon: ".($nameon{$component}||"")."\n" if($component>=0 && $annotate);

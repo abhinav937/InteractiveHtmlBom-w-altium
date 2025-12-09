@@ -7,6 +7,17 @@ from __future__ import absolute_import
 
 import os
 import sys
+import warnings
+
+# Set environment variables BEFORE importing anything that might import pcbnew/wxWidgets
+# This prevents GUI initialization when running as a web server
+os.environ['INTERACTIVE_HTML_BOM_CLI_MODE'] = '1'
+os.environ['DISPLAY'] = ''  # Prevent X11/WX GUI initialization on Unix-like systems
+os.environ['KICAD_RUN_FROM_BUILD_DIR'] = '1'  # Some KiCad versions use this
+
+# Suppress cgi deprecation warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning, module='cgi')
+
 import tempfile
 import shutil
 import webbrowser
@@ -436,6 +447,8 @@ def find_free_port():
 def check_kicad_python():
     """Check if pcbnew module is available."""
     try:
+        # Import pcbnew - wxWidgets assertion errors may appear but are harmless
+        # when running headless (they're just warnings about GUI initialization)
         import pcbnew
         return True, None
     except ImportError:
@@ -570,6 +583,8 @@ def main():
     
     print(f"Starting Interactive HTML BOM server...")
     print(f"Server running at {url}")
+    if has_pcbnew:
+        print("Note: wxWidgets assertion warnings (if any) are harmless when running headless.")
     print(f"Opening browser...")
     print(f"Press Ctrl+C to stop the server")
     

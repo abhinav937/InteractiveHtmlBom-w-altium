@@ -101,7 +101,7 @@ The launcher will automatically:
 - Start the web server
 - Open your browser to the upload interface
 
-**Note:** If you run `web_server.py` directly with system Python, it will automatically restart with KiCad Python if detected, or show an error message.
+**Note:** If you run `web/web_server.py` directly with system Python, it will automatically restart with KiCad Python if detected, or show an error message.
 
 This will:
 - Start a local web server

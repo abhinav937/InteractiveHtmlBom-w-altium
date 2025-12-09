@@ -65,11 +65,11 @@ python_cmd = find_kicad_python()
 if python_cmd:
     print(f"Using KiCad Python: {python_cmd}")
     # Run web_server.py with KiCad Python
-    os.execv(python_cmd, [python_cmd, os.path.join(script_dir, 'web_server.py')])
+    os.execv(python_cmd, [python_cmd, os.path.join(script_dir, 'web', 'web_server.py')])
 else:
     print("KiCad Python not found. Trying system Python...")
     print("Note: File processing may fail if pcbnew module is not available.")
     # Fall back to system Python
     import subprocess
-    subprocess.run([sys.executable, os.path.join(script_dir, 'web_server.py')])
+    subprocess.run([sys.executable, os.path.join(script_dir, 'web', 'web_server.py')])
 

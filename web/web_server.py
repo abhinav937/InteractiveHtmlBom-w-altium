@@ -20,7 +20,9 @@ import io
 
 # Add the project directory to path
 script_dir = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
-sys.path.insert(0, script_dir)
+# Get the project root directory (parent of web/)
+project_root = os.path.dirname(script_dir)
+sys.path.insert(0, project_root)
 
 
 class BOMHandler(BaseHTTPRequestHandler):

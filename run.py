@@ -85,11 +85,35 @@ if python_cmd:
     # Use subprocess instead of os.execv for better Windows compatibility with paths containing spaces
     import subprocess
     web_server_path = os.path.join(script_dir, 'web', 'web_server.py')
-    subprocess.run([python_cmd, web_server_path])
+    try:
+        # Use Popen and wait to allow proper signal handling
+        # The child process (web_server.py) handles its own KeyboardInterrupt gracefully
+        process = subprocess.Popen([python_cmd, web_server_path])
+        process.wait()
+    except KeyboardInterrupt:
+        # KeyboardInterrupt caught - child process should have handled cleanup
+        # Wait a moment for child to finish cleanup, then exit gracefully
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            pass  # Child is handling its own shutdown
+        sys.exit(0)
 else:
     print("KiCad Python not found. Trying system Python...")
     print("Note: File processing may fail if pcbnew module is not available.")
     # Fall back to system Python
     import subprocess
-    subprocess.run([sys.executable, os.path.join(script_dir, 'web', 'web_server.py')])
+    try:
+        # Use Popen and wait to allow proper signal handling
+        # The child process (web_server.py) handles its own KeyboardInterrupt gracefully
+        process = subprocess.Popen([sys.executable, os.path.join(script_dir, 'web', 'web_server.py')])
+        process.wait()
+    except KeyboardInterrupt:
+        # KeyboardInterrupt caught - child process should have handled cleanup
+        # Wait a moment for child to finish cleanup, then exit gracefully
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            pass  # Child is handling its own shutdown
+        sys.exit(0)
 

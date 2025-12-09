@@ -1,5 +1,5 @@
 # Interactive HTML BOM plugin for KiCad
-## Supports EasyEDA, Eagle, Fusion360 and Allegro PCB designer
+## Supports KiCad and Altium Designer PCB files
 
 ![icon](https://i.imgur.com/js4kDOn.png)
 
@@ -27,7 +27,137 @@ and can be packaged with documentation of your project or hosted anywhere on the
 
 ## Installation and Usage
 
-See [project wiki](https://github.com/openscopeproject/InteractiveHtmlBom/wiki/Installation) for instructions.
+### Requirements
+
+1. **KiCad** - Required for parsing PCB files
+   - Install from: https://www.kicad.org/download/
+   - The Python API (pcbnew) is bundled with KiCad
+
+2. **Perl** - Required for Altium file conversion
+   - Check: `perl --version`
+   - Usually pre-installed on macOS/Linux
+   - Windows: Install from https://www.perl.org/get.html
+
+3. **Python dependencies**
+   - wxPython >= 4.0
+   - Install with: `pip install wxpython`
+
+### Supported Formats
+
+- **KiCad** - `.kicad_pcb` files (native support)
+- **Altium Designer** - `.PcbDoc` files (converted to KiCad format automatically)
+
+### Usage
+
+#### Web Interface (Recommended)
+
+**To start the web interface:**
+
+Simply run:
+```bash
+python3 run.py
+```
+
+Or on macOS/Linux, you can make it executable and run directly:
+```bash
+chmod +x run.py
+./run.py
+```
+
+The launcher will automatically:
+- Detect and use KiCad's Python (required for pcbnew module)
+- Start the web server
+- Open your browser to the upload interface
+
+**Note:** If you run `web_server.py` directly with system Python, it will automatically restart with KiCad Python if detected, or show an error message.
+
+This will:
+- Start a local web server
+- Open your browser automatically
+- Provide a drag-and-drop interface to upload `.PcbDoc` or `.kicad_pcb` files
+- Generate the BOM and open it in a new tab
+- Store files in a temporary directory (configurable)
+
+**Features:**
+- Simple drag-and-drop file upload
+- Optional custom temporary directory
+- Automatic cleanup of temporary files
+- Opens generated BOM in new browser tab
+
+#### Command Line Interface
+
+**For KiCad Files:**
+
+```bash
+python3 InteractiveHtmlBom/generate_interactive_bom.py board.kicad_pcb
+```
+
+**For Altium Files:**
+
+```bash
+python3 InteractiveHtmlBom/generate_interactive_bom.py board.PcbDoc
+```
+
+The Altium parser will:
+1. Automatically find the included `altium2kicad` converter in the repository
+2. Convert the `.PcbDoc` to `.kicad_pcb` format (cached for future use)
+3. Use the KiCad parser to generate the HTML BOM
+
+**Note:** On some systems, you may need to use KiCad's bundled Python:
+
+**macOS:**
+```bash
+/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3 \
+  InteractiveHtmlBom/generate_interactive_bom.py board.PcbDoc
+```
+
+**Linux:**
+```bash
+# KiCad Python is typically available as:
+python3 InteractiveHtmlBom/generate_interactive_bom.py board.PcbDoc
+# Or if KiCad is installed via package manager:
+kicad-python3 InteractiveHtmlBom/generate_interactive_bom.py board.PcbDoc
+```
+
+**Windows:**
+```bash
+# Use KiCad's Python from the installation directory
+"C:\Program Files\KiCad\bin\python.exe" InteractiveHtmlBom\generate_interactive_bom.py board.PcbDoc
+```
+
+### How Altium Conversion Works
+
+1. The `AltiumParser` detects `.PcbDoc` files
+2. It searches for the `altium2kicad` converter (included in repository)
+3. Converts the `.PcbDoc` to `.kicad_pcb` format (cached for future use)
+4. Uses the existing KiCad parser to generate the HTML BOM
+
+### Troubleshooting
+
+**"altium2kicad converter not found"**
+- The converter should be included in the `altium2kicad` directory in the repository root
+- If missing, ensure you cloned the repository completely
+- The converter will also be searched in common installation locations
+
+**"Perl is required but not found"**
+- Install Perl: `brew install perl` (macOS), or use your system package manager
+- Windows: Download from https://www.perl.org/get.html
+
+**"KiCad Python API (pcbnew) is required"**
+- Ensure KiCad is installed
+- Use KiCad's bundled Python (see Usage section above)
+- Or ensure pcbnew module is available in your Python environment
+
+**Conversion errors**
+- Check that the `.PcbDoc` file is not corrupted
+- Verify altium2kicad converter scripts are executable: `chmod +x altium2kicad/*.pl`
+- Check converter logs for specific error messages
+
+### Notes
+
+- The converted `.kicad_pcb` file is saved in the same directory as the original `.PcbDoc`
+- If the converted file exists and is newer than the original, it will be reused
+- Temporary files are automatically cleaned up after conversion
 
 ## License and credits
 

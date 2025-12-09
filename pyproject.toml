@@ -9,7 +9,7 @@ description = 'Generate Interactive Html BOM for your electronics projects'
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
-keywords = ["ibom", "KiCad", "Eagle", "EasyEDA"]
+keywords = ["ibom", "KiCad", "Altium"]
 authors = [{ name = "qu1ck", email = "anlutsenko@gmail.com" }]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
@@ -21,7 +21,6 @@ classifiers = [
 ]
 dependencies = [
   "wxpython>=4.0",
-  "jsonschema>=4.1",
 ]
 
 [project.scripts]

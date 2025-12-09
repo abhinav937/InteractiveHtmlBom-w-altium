@@ -4,7 +4,7 @@ set i18n_batScar=                                                Bat file by Sca
 set i18n_thx4using=                                      Thank You For Using Generate Interactive Bom
 
 ::convert
-set i18n_draghere=Please Drag the EasyEDA PCB source file here :
+set i18n_draghere=Please Drag the KiCad or Altium PCB source file here :
 set i18n_converting=Converting . . . . . .
 
 ::converted

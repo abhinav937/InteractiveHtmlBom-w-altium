@@ -15,14 +15,128 @@ import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import json
-import cgi
 import io
+import re
+
+# Try to import cgi, fall back to manual parsing for Python 3.13+
+try:
+    import cgi
+    HAS_CGI = True
+except ImportError:
+    HAS_CGI = False
 
 # Add the project directory to path
 script_dir = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 # Get the project root directory (parent of web/)
 project_root = os.path.dirname(script_dir)
 sys.path.insert(0, project_root)
+
+
+def parse_multipart_form_data(post_data, content_type, headers=None):
+    """
+    Parse multipart/form-data. Compatible with Python 3.13+ (no cgi module).
+    Returns a dict-like object similar to cgi.FieldStorage.
+    """
+    if HAS_CGI:
+        # Use cgi if available (Python < 3.13)
+        if headers is None:
+            headers = {}
+        if 'Content-Type' not in headers:
+            headers['Content-Type'] = content_type
+        form = cgi.FieldStorage(
+            fp=io.BytesIO(post_data),
+            headers=headers,
+            environ={'REQUEST_METHOD': 'POST'}
+        )
+        return form
+    
+    # Manual parsing for Python 3.13+
+    boundary_match = re.search(r'boundary=([^;]+)', content_type)
+    if not boundary_match:
+        raise ValueError("No boundary found in Content-Type")
+    
+    boundary = boundary_match.group(1).strip('"')
+    parts = post_data.split(b'--' + boundary.encode())
+    
+    class FieldStorage:
+        def __init__(self):
+            self._fields = {}
+        
+        def __contains__(self, key):
+            return key in self._fields
+        
+        def __getitem__(self, key):
+            return self._fields[key]
+        
+        def get(self, key, default=None):
+            return self._fields.get(key, default)
+        
+        def getvalue(self, key, default=None):
+            item = self._fields.get(key)
+            if item is None:
+                return default
+            if hasattr(item, 'value') and item.value is not None:
+                return item.value
+            # For file fields, return None or default
+            if hasattr(item, 'filename') and item.filename:
+                return default
+            return item
+    
+    class FieldItem:
+        def __init__(self, filename=None, value=None, file_data=None):
+            self.filename = filename
+            self.value = value
+            if file_data is not None:
+                self.file = io.BytesIO(file_data)
+                self.file.seek(0)  # Reset to beginning
+            else:
+                self.file = None
+    
+    form = FieldStorage()
+    
+    for part in parts:
+        if not part.strip() or part.strip() == b'--':
+            continue
+        
+        # Split headers and body
+        if b'\r\n\r\n' in part:
+            header_part, body = part.split(b'\r\n\r\n', 1)
+        elif b'\n\n' in part:
+            header_part, body = part.split(b'\n\n', 1)
+        else:
+            continue
+        
+        headers = {}
+        for line in header_part.decode('utf-8', errors='ignore').split('\n'):
+            if ':' in line:
+                key, value = line.split(':', 1)
+                headers[key.strip().lower()] = value.strip()
+        
+        # Get Content-Disposition
+        content_disp = headers.get('content-disposition', '')
+        name_match = re.search(r'name="([^"]+)"', content_disp)
+        if not name_match:
+            continue
+        
+        field_name = name_match.group(1)
+        filename_match = re.search(r'filename="([^"]+)"', content_disp)
+        
+        # Remove trailing boundary marker if present
+        if body.endswith(b'--\r\n'):
+            body = body[:-4]
+        elif body.endswith(b'--'):
+            body = body[:-2]
+        
+        # Remove trailing newlines
+        body = body.rstrip(b'\r\n')
+        
+        if filename_match:
+            filename = filename_match.group(1)
+            form._fields[field_name] = FieldItem(filename=filename, file_data=body)
+        else:
+            form._fields[field_name] = FieldItem(value=body.decode('utf-8', errors='ignore'))
+    
+    return form
 
 
 class BOMHandler(BaseHTTPRequestHandler):
@@ -138,12 +252,8 @@ class BOMHandler(BaseHTTPRequestHandler):
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             
-            # Parse multipart form data
-            form = cgi.FieldStorage(
-                fp=io.BytesIO(post_data),
-                headers=self.headers,
-                environ={'REQUEST_METHOD': 'POST'}
-            )
+            # Parse multipart form data (compatible with Python 3.13+)
+            form = parse_multipart_form_data(post_data, content_type, self.headers)
             
             # Get file
             if 'file' not in form:
@@ -368,18 +478,35 @@ def find_kicad_python():
     elif system == 'Windows':
         # Windows common locations
         import glob
-        kicad_paths = [
-            r'C:\Program Files\KiCad\bin\python.exe',
-            r'C:\Program Files (x86)\KiCad\bin\python.exe',
-        ]
-        for path in kicad_paths:
-            if os.path.exists(path):
-                return path
-        # Try to find in Program Files
+        # Try to find KiCad in Program Files with version-specific paths
         for pf in [r'C:\Program Files', r'C:\Program Files (x86)']:
             if os.path.exists(pf):
+                # First, try to find version-specific directories (e.g., KiCad\9.0\bin\python.exe, KiCad\9.1\bin\python.exe, etc.)
+                # The '*' wildcard matches any version number (9.0, 9.1, 9.2, 9.10, etc.)
+                version_matches = glob.glob(os.path.join(pf, 'KiCad', '*', 'bin', 'python.exe'))
+                if version_matches:
+                    # Sort to get the latest version first (if multiple versions exist)
+                    # Natural sort handles version numbers better than alphabetical
+                    def version_key(path):
+                        # Extract version number from path for better sorting
+                        parts = path.split(os.sep)
+                        for part in parts:
+                            if part.replace('.', '').isdigit():
+                                try:
+                                    return float(part)
+                                except ValueError:
+                                    pass
+                        return 0.0
+                    version_matches.sort(key=version_key, reverse=True)
+                    return version_matches[0]
+                # Then try generic KiCad\bin\python.exe
+                generic_path = os.path.join(pf, 'KiCad', 'bin', 'python.exe')
+                if os.path.exists(generic_path):
+                    return generic_path
+                # Also try KiCad*\bin\python.exe pattern (catches any KiCad directory)
                 matches = glob.glob(os.path.join(pf, 'KiCad*', 'bin', 'python.exe'))
                 if matches:
+                    matches.sort(reverse=True)
                     return matches[0]
     
     return None

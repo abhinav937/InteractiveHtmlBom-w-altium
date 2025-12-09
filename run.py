@@ -39,18 +39,35 @@ def find_kicad_python():
     
     elif system == 'Windows':
         import glob
-        kicad_paths = [
-            r'C:\Program Files\KiCad\bin\python.exe',
-            r'C:\Program Files (x86)\KiCad\bin\python.exe',
-        ]
-        for path in kicad_paths:
-            if os.path.exists(path):
-                return path
-        # Try to find in Program Files
+        # Try to find KiCad in Program Files with version-specific paths
         for pf in [r'C:\Program Files', r'C:\Program Files (x86)']:
             if os.path.exists(pf):
+                # First, try to find version-specific directories (e.g., KiCad\9.0\bin\python.exe, KiCad\9.1\bin\python.exe, etc.)
+                # The '*' wildcard matches any version number (9.0, 9.1, 9.2, 9.10, etc.)
+                version_matches = glob.glob(os.path.join(pf, 'KiCad', '*', 'bin', 'python.exe'))
+                if version_matches:
+                    # Sort to get the latest version first (if multiple versions exist)
+                    # Natural sort handles version numbers better than alphabetical
+                    def version_key(path):
+                        # Extract version number from path for better sorting
+                        parts = path.split(os.sep)
+                        for part in parts:
+                            if part.replace('.', '').isdigit():
+                                try:
+                                    return float(part)
+                                except ValueError:
+                                    pass
+                        return 0.0
+                    version_matches.sort(key=version_key, reverse=True)
+                    return version_matches[0]
+                # Then try generic KiCad\bin\python.exe
+                generic_path = os.path.join(pf, 'KiCad', 'bin', 'python.exe')
+                if os.path.exists(generic_path):
+                    return generic_path
+                # Also try KiCad*\bin\python.exe pattern (catches any KiCad directory)
                 matches = glob.glob(os.path.join(pf, 'KiCad*', 'bin', 'python.exe'))
                 if matches:
+                    matches.sort(reverse=True)
                     return matches[0]
     
     return None

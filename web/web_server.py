@@ -424,15 +424,57 @@ class BOMHandler(BaseHTTPRequestHandler):
     def handle_cleanup(self):
         """Handle cleanup request to delete temp files."""
         try:
+            cleaned_count = 0
+            cleaned_dirs = []
+            
+            # Clean up current session temp directory
             if self.temp_dir and os.path.exists(self.temp_dir):
-                shutil.rmtree(self.temp_dir)
+                try:
+                    shutil.rmtree(self.temp_dir)
+                    cleaned_dirs.append(self.temp_dir)
+                    cleaned_count += 1
+                except Exception as e:
+                    pass  # Continue even if one fails
                 self.temp_dir = None
                 self.output_dir = None
+            
+            # Also clean up any old bom_* directories in system temp
+            temp_base = tempfile.gettempdir()
+            try:
+                if os.path.exists(temp_base):
+                    for item in os.listdir(temp_base):
+                        if item.startswith('bom_'):
+                            bom_dir = os.path.join(temp_base, item)
+                            try:
+                                if os.path.isdir(bom_dir):
+                                    shutil.rmtree(bom_dir)
+                                    cleaned_dirs.append(bom_dir)
+                                    cleaned_count += 1
+                            except Exception:
+                                pass  # Skip if can't delete (might be in use)
+            except Exception:
+                pass  # Skip if can't access temp directory
+            
+            # Clear file registry
+            self.file_registry.clear()
+            
+            message = f'Cleaned up {cleaned_count} temporary directory'
+            if cleaned_count != 1:
+                message += 'ies'
+            if cleaned_count > 0:
+                message += f': {", ".join([os.path.basename(d) for d in cleaned_dirs[:5]])}'
+                if len(cleaned_dirs) > 5:
+                    message += f' and {len(cleaned_dirs) - 5} more'
+            else:
+                message = 'No temporary files found to clean up'
+            
+            # Report to terminal
+            print(f"[Cleanup] {message}")
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            self.wfile.write(json.dumps({'success': True}).encode())
+            self.wfile.write(json.dumps({'success': True, 'message': message, 'cleaned_count': cleaned_count}).encode())
         except Exception as e:
             self.send_error(500, f"Cleanup error: {str(e)}")
 
@@ -604,11 +646,34 @@ def main():
     except KeyboardInterrupt:
         print("\nShutting down server...")
         # Cleanup temp directories
+        cleaned_count = 0
+        
+        # Clean current session temp directory
         if BOMHandler.temp_dir and os.path.exists(BOMHandler.temp_dir):
             try:
                 shutil.rmtree(BOMHandler.temp_dir)
+                cleaned_count += 1
             except:
                 pass
+        
+        # Clean up any old bom_* directories in system temp
+        temp_base = tempfile.gettempdir()
+        try:
+            if os.path.exists(temp_base):
+                for item in os.listdir(temp_base):
+                    if item.startswith('bom_'):
+                        bom_dir = os.path.join(temp_base, item)
+                        try:
+                            if os.path.isdir(bom_dir):
+                                shutil.rmtree(bom_dir)
+                                cleaned_count += 1
+                        except Exception:
+                            pass  # Skip if can't delete (might be in use)
+        except Exception:
+            pass
+        
+        if cleaned_count > 0:
+            print(f"Cleaned up {cleaned_count} temporary director{'y' if cleaned_count == 1 else 'ies'}")
         httpd.shutdown()
 
 
